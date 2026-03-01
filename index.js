@@ -1,32 +1,27 @@
 const mineflayer = require('mineflayer');
 
-function startBot() {
-    console.log("🚀 جاري محاولة الدخول ببروتوكول ثابت (1.21.4)...");
-    
+function createBot() {
     const bot = mineflayer.createBot({
         host: 'achkhassek.aternos.me',
         port: 27162,
         username: 'Pikachu_Bot',
-        // فرض النسخة باش يتجاوز مشكل الـ autoVersion والـ 769/773
-        version: '1.21.4', 
-        // وقت أطول للاتصال باش نتفاداو ETIMEDOUT
-        connectTimeout: 60000 
+        // هنا حددنا النسخة اللي كتعادل بروتوكول 769
+        version: '1.21.3', 
+        hideErrors: true
     });
 
     bot.on('spawn', () => {
-        console.log('✅ ناضي! البوت دخل للسيرفر وخدام.');
+        console.log('✅ ناضي! البوت دخل للسيرفر بنجاح.');
     });
 
     bot.on('error', (err) => {
-        console.log('❌ مشكل في الاتصال:', err.message);
-        // إلا عطاك ETIMEDOUT، راه السيرفر تقيل أو طافي
+        console.log('❌ مشكل:', err.message);
     });
 
-    bot.on('end', (reason) => {
-        console.log('🔄 انقطع الاتصال بسباب: ' + reason + '. غنعاودو بعد 15 ثانية...');
-        setTimeout(startBot, 15000);
+    bot.on('end', () => {
+        console.log('🔄 انقطع الاتصال، كيحاول يرجع...');
+        setTimeout(createBot, 15000);
     });
 }
 
-// تشغيل
-startBot();
+createBot();
