@@ -1,23 +1,19 @@
 const mineflayer = require('mineflayer');
 
-// هاد الكود مجموع ومقاد باش ما يعطيك حتى Error
 const botArgs = {
     host: 'achkhassek.aternos.me',
     port: 27162,
     username: 'Pikachu_Bot',
-    version: false // غيخليه يكتشف النسخة راسو بلا صداع الراس
+    version: '1.21.4' // دابا النسخة مطابقة للسيرفر 100%
 };
 
 function startBot() {
-    console.log("🚀 جاري تشغيل البوت...");
+    console.log("🚀 جاري الاتصال بسيرفر 1.21.4...");
     const bot = mineflayer.createBot(botArgs);
 
     bot.on('spawn', () => {
-        console.log('✅ البوت دخل للسيرفر! دابا السيرفر غيبقا شاعل 24/7.');
-    });
-
-    // حركة باش ما يخرجش AFK
-    bot.on('login', () => {
+        console.log('✅ ناضي! البوت دخل للسيرفر وخدام.');
+        // كيدير حركة باش ما يخرجش AFK كل 30 ثانية
         setInterval(() => {
             bot.setControlState('jump', true);
             setTimeout(() => bot.setControlState('jump', false), 500);
@@ -25,11 +21,11 @@ function startBot() {
     });
 
     bot.on('error', (err) => {
-        console.log('❌ وقع مشكل:', err.message);
+        console.log('❌ مشكل:', err.message);
     });
 
     bot.on('end', () => {
-        console.log('🔄 الاتصال انقطع، كيحاول يرجع بعد 15 ثانية...');
+        console.log('🔄 انقطع الاتصال، غنعاودو بعد 15 ثانية...');
         setTimeout(startBot, 15000);
     });
 }
