@@ -1,40 +1,37 @@
 const mineflayer = require('mineflayer');
 
-// معلومات السيرفر ديالك من الصورة
-const serverConfig = {
+// هاد الكود مجموع ومقاد باش ما يعطيك حتى Error
+const botArgs = {
     host: 'achkhassek.aternos.me',
     port: 27162,
     username: 'Pikachu_Bot',
-    version: false // غيخليه يكتشف النسخة راسو بلا ما نغلطو في الرقم
+    version: false // غيخليه يكتشف النسخة راسو بلا صداع الراس
 };
 
-function createBot() {
-    console.log("🚀 جاري محاولة الدخول للسيرفر...");
-    
-    const bot = mineflayer.createBot(serverConfig);
+function startBot() {
+    console.log("🚀 جاري تشغيل البوت...");
+    const bot = mineflayer.createBot(botArgs);
 
     bot.on('spawn', () => {
-        console.log('✅ البوت دخل بنجاح! السيرفر دابا ماغاديش يطفا.');
-        // حركة بسيطة باش ما يخرجش AFK
+        console.log('✅ البوت دخل للسيرفر! دابا السيرفر غيبقا شاعل 24/7.');
+    });
+
+    // حركة باش ما يخرجش AFK
+    bot.on('login', () => {
         setInterval(() => {
             bot.setControlState('jump', true);
             setTimeout(() => bot.setControlState('jump', false), 500);
         }, 30000);
     });
 
-    bot.on('chat', (username, message) => {
-        if (username === bot.username) return;
-        if (message === 'hello') bot.chat('Marhba bikom f server!');
-    });
-
     bot.on('error', (err) => {
-        console.log('❌ وقع خطأ:', err.message);
+        console.log('❌ وقع مشكل:', err.message);
     });
 
     bot.on('end', () => {
-        console.log('🔄 الاتصال انقطع، غنعاودو بعد 20 ثانية...');
-        setTimeout(createBot, 20000);
+        console.log('🔄 الاتصال انقطع، كيحاول يرجع بعد 15 ثانية...');
+        setTimeout(startBot, 15000);
     });
 }
 
-createBot();
+startBot();
