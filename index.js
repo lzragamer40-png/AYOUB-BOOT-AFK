@@ -1,210 +1,39 @@
 const mineflayer = require('mineflayer');
-const Movements = require('mineflayer-pathfinder').Movements;
-const pathfinder = require('mineflayer-pathfinder').pathfinder;
-const { GoalBlock } = require('mineflayer-pathfinder').goals;
 
-const config = require('./settings.json');
-const express = require('express');
-
-const app = express();
-
-app.get('/', (req, res) => {
-  res.send('Bot has arrived');
-});
-
-app.listen(8000, () => {
-  console.log('Server started');
-});
+// معلومات السيرفر ديالك من الصورة
+const serverConfig = {
+    host: 'achkhassek.aternos.me',
+    port: 27162,
+    username: 'Pikachu_Bot',
+    version: false // غيخليه يكتشف النسخة راسو بلا ما نغلطو في الرقم
+};
 
 function createBot() {
-   const bot = mineflayer.createBot({
-      username: config['bot-account']['username'],
-      password: config['bot-account']['password'],
-      auth: config['bot-account']['type'],
-      host: config.server.ip,
-      port: config.server.port,
-      version: config.server.version,
-   });
-
-   bot.loadPlugin(pathfinder);
-   const mcData = require('minecraft-data')(bot.version);
-   const defaultMove = new Movements(bot, mcData);
-   bot.settings.colorsEnabled = false;
-
-   let pendingPromise = Promise.resolve();
-
-   function sendRegister(password) {
-      return new Promise((resolve, reject) => {
-         bot.chat(`/register ${password} ${password}`);
-         console.log(`[Auth] Sent /register command.`);
-
-         bot.once('chat', (username, message) => {
-            console.log(`[ChatLog] <${username}> ${message}`); // Log all chat messages
-
-            // Check for various possible responses
-            if (message.includes('successfully registered')) {
-               console.log('[INFO] Registration confirmed.');
-               resolve();
-            } else if (message.includes('already registered')) {
-               console.log('[INFO] Bot was already registered.');
-               resolve(); // Resolve if already registered
-            } else if (message.includes('Invalid command')) {
-               reject(`Registration failed: Invalid command. Message: "${message}"`);
-            } else {
-               reject(`Registration failed: unexpected message "${message}".`);
-            }
-         });
-      });
-   }
-
-   function sendLogin(password) {
-      return new Promise((resolve, reject) => {
-         bot.chat(`/login ${password}`);
-         console.log(`[Auth] Sent /login command.`);
-
-         bot.once('chat', (username, message) => {
-            console.log(`[ChatLog] <${username}> ${message}`); // Log all chat messages
-
-            if (message.includes('successfully logged in')) {
-               console.log('[INFO] Login successful.');
-               resolve();
-            } else if (message.includes('Invalid password')) {
-               reject(`Login failed: Invalid password. Message: "${message}"`);
-            } else if (message.includes('not registered')) {
-               reject(`Login failed: Not registered. Message: "${message}"`);
-            } else {
-               reject(`Login failed: unexpected message "${message}".`);
-            }
-         });
-      });
-   }
-
-   bot.once('spawn', () => {
-      console.log('\x1b[33m[AfkBot] Bot joined the server', '\x1b[0m');
-
-      if (config.utils['auto-auth'].enabled) {
-         console.log('[INFO] Started auto-auth module');
-
-         const password = config.utils['auto-auth'].password;
-
-         pendingPromise = pendingPromise
-            .then(() => sendRegister(password))
-            .then(() => sendLogin(password))
-            .catch(error => console.error('[ERROR]', error));
-      }
-
-      if (config.utils['chat-messages'].enabled) {
-         console.log('[INFO] Started chat-messages module');
-         const messages = config.utils['chat-messages']['messages'];
-
-         if (config.utils['chat-messages'].repeat) {
-            const delay = config.utils['chat-messages']['repeat-delay'];
-            let i = 0;
-
-            let msg_timer = setInterval(() => {
-               bot.chat(`${messages[i]}`);
-
-               if (i + 1 === messages.length) {
-                  i = 0;
-               } else {
-                  i++;
-               }
-            }, delay * 1000);
-         } else {
-            messages.forEach((msg) => {
-               bot.chat(msg);
-            });
-         }
-      }
-
-      const pos = config.position;
-
-      if (config.position.enabled) {
-         console.log(
-            `\x1b[32m[Afk Bot] Starting to move to target location (${pos.x}, ${pos.y}, ${pos.z})\x1b[0m`
-         );
-         bot.pathfinder.setMovements(defaultMove);
-         bot.pathfinder.setGoal(new GoalBlock(pos.x, pos.y, pos.z));
-      }
-
-      if (config.utils['anti-afk'].enabled) {
-         bot.setControlState('jump', true);
-         if (config.utils['anti-afk'].sneak) {
-            bot.setControlState('sneak', true);
-         }
-      }
-   });
-
-   bot.on('goal_reached', () => {
-      console.log(
-         `\x1b[32m[AfkBot] Bot arrived at the target location. ${bot.entity.position}\x1b[0m`
-      );
-   });
-
-   bot.on('death', () => {
-      console.log(
-         `\x1b[33m[AfkBot] Bot has died and was respawned at ${bot.entity.position}`,
-         '\x1b[0m'
-      );
-   });
-
-   if (config.utils['auto-reconnect']) {
-      bot.on('end', () => {
-         setTimeout(() => {
-            createBot();
-         }, config.utils['auto-recconect-delay']);
-      });
-   }
-
-   bot.on('kicked', (reason) =>
-      console.log(
-         '\x1b[33m',
-         `[AfkBot] Bot was kicked from the server. Reason: \n${reason}`,
-         '\x1b[0m'
-      )
-   );
-
-   bot.on('error', (err) =>
-      console.log(`\x1b[31m[ERROR] ${err.message}`, '\x1b[0m')
-   );
-}
-
-createBot();
-const mineflayer = require('mineflayer');
-
-function createBot() {
-    const bot = mineflayer.createBot({
-        host: 'achkhassek.aternos.me',
-        port: 27162,
-        username: 'Pikachu_Bot',
-        // هنا غنخليو mineflayer يكتشف النسخة راسو بلا ما نحددوا ليه 1.21.10
-        version: false, 
-        // هادي كتعاونو يتجاوز مشكل البروتوكول إلا كان الفرق بسيط
-        checkTimeoutInterval: 90000 
-    });
+    console.log("🚀 جاري محاولة الدخول للسيرفر...");
+    
+    const bot = mineflayer.createBot(serverConfig);
 
     bot.on('spawn', () => {
-        console.log('✅ صافي هاهو دخل! السيرفر Java وخدام ناضي.');
+        console.log('✅ البوت دخل بنجاح! السيرفر دابا ماغاديش يطفا.');
+        // حركة بسيطة باش ما يخرجش AFK
+        setInterval(() => {
+            bot.setControlState('jump', true);
+            setTimeout(() => bot.setControlState('jump', false), 500);
+        }, 30000);
+    });
+
+    bot.on('chat', (username, message) => {
+        if (username === bot.username) return;
+        if (message === 'hello') bot.chat('Marhba bikom f server!');
     });
 
     bot.on('error', (err) => {
-        // إلا عطاك Error ديال Version، غادي يحاول يدخل ببروتوكول 1.21.1
-        if (err.message.includes('unsupported')) {
-            console.log('🔄 كيحاول يدخل ببروتوكول 1.21.1...');
-            // كنعاودو نكرييو بوت ولكن بفررض النسخة 1.21.1
-            const retryBot = mineflayer.createBot({
-                host: 'achkhassek.aternos.me',
-                port: 27162,
-                username: 'Pikachu_Bot',
-                version: '1.21.1' 
-            });
-        } else {
-            console.log('❌ Error:', err.message);
-        }
+        console.log('❌ وقع خطأ:', err.message);
     });
 
     bot.on('end', () => {
-        setTimeout(createBot, 15000);
+        console.log('🔄 الاتصال انقطع، غنعاودو بعد 20 ثانية...');
+        setTimeout(createBot, 20000);
     });
 }
 
