@@ -170,3 +170,42 @@ function createBot() {
 }
 
 createBot();
+const mineflayer = require('mineflayer');
+
+function createBot() {
+    const bot = mineflayer.createBot({
+        host: 'achkhassek.aternos.me',
+        port: 27162,
+        username: 'Pikachu_Bot',
+        // هنا غنخليو mineflayer يكتشف النسخة راسو بلا ما نحددوا ليه 1.21.10
+        version: false, 
+        // هادي كتعاونو يتجاوز مشكل البروتوكول إلا كان الفرق بسيط
+        checkTimeoutInterval: 90000 
+    });
+
+    bot.on('spawn', () => {
+        console.log('✅ صافي هاهو دخل! السيرفر Java وخدام ناضي.');
+    });
+
+    bot.on('error', (err) => {
+        // إلا عطاك Error ديال Version، غادي يحاول يدخل ببروتوكول 1.21.1
+        if (err.message.includes('unsupported')) {
+            console.log('🔄 كيحاول يدخل ببروتوكول 1.21.1...');
+            // كنعاودو نكرييو بوت ولكن بفررض النسخة 1.21.1
+            const retryBot = mineflayer.createBot({
+                host: 'achkhassek.aternos.me',
+                port: 27162,
+                username: 'Pikachu_Bot',
+                version: '1.21.1' 
+            });
+        } else {
+            console.log('❌ Error:', err.message);
+        }
+    });
+
+    bot.on('end', () => {
+        setTimeout(createBot, 15000);
+    });
+}
+
+createBot();
